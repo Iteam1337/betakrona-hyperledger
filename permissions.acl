@@ -11,10 +11,19 @@ rule EverybodyCanReadEverything {
 
 rule EverybodyCanSubmitTransactions {
     description: "Allow all participants to submit transactions from their own accounts"
-    participant: "org.riksbanken.ekrona.Person"
+    participant(p): "org.riksbanken.ekrona.Person"
     operation: CREATE
-    resource: "org.riksbanken.ekrona.AccountTransaction"
+    resource(r): "org.riksbanken.ekrona.AccountTransaction"
     condition: (r.from.owner.getIdentifier() === p.getIdentifier())
+    action: ALLOW
+}
+
+rule EverybodyCanSubmitEmptyAccountTransactions {
+    description: "Allow all participants to submit transactions from their own accounts"
+    participant(p): "org.riksbanken.ekrona.Person"
+    operation: CREATE
+    resource(r): "org.riksbanken.ekrona.EmptyAccountTransaction"
+    condition: (r.account.owner.getIdentifier() === p.getIdentifier())
     action: ALLOW
 }
 

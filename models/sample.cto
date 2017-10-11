@@ -18,6 +18,13 @@ transaction AccountTransaction {
   o Double amount
 }
 
+transaction CreateEmptyAccount {
+}
+
+transaction EmptyAccountTransaction {
+  --> Account account
+}
+
 event AccountValueChangeEvent {
   --> Account account
   o Double oldValue

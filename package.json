@@ -7,15 +7,7 @@
   "description": "This is a lab network for the e-krona project",
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/ekrona.bna",
-    "pretest": "npm run lint",
-    "lint": "eslint .",
-    "postlint": "npm run licchk",
-    "licchk": "echo license",
-    "postlicchk": "npm run doc",
-    "doc": "jsdoc --pedantic --recurse -c jsdoc.json",
-    "test-inner": "mocha -t 0 --recursive && cucumber-js",
-    "test-cover": "nyc npm run test-inner",
-    "test": "npm run test-inner"
+    "test": "mocha -t 0 --recursive"
   },
   "keywords": [
     "e-krona"
