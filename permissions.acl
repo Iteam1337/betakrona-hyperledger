@@ -1,0 +1,36 @@
+/**
+ * Sample access control list.
+ */
+rule EverybodyCanReadEverything {
+    description: "Allow all participants read access to all resources"
+    participant: "org.riksbanken.ekrona.Person"
+    operation: READ
+    resource: "org.riksbanken.ekrona.*"
+    action: ALLOW
+}
+
+rule EverybodyCanSubmitTransactions {
+    description: "Allow all participants to submit transactions from their own accounts"
+    participant: "org.riksbanken.ekrona.Person"
+    operation: CREATE
+    resource: "org.riksbanken.ekrona.AccountTransaction"
+    condition: (r.from.owner.getIdentifier() === p.getIdentifier())
+    action: ALLOW
+}
+
+rule OwnerHasFullAccessToTheirAssets {
+    description: "Allow all participants full access to their assets"
+    participant(p): "org.riksbanken.ekrona.Person"
+    operation: ALL
+    resource(r): "org.riksbanken.ekrona.Account"
+    condition: (r.owner.getIdentifier() === p.getIdentifier())
+    action: ALLOW
+}
+
+rule SystemACL {
+  description:  "System ACL to permit all access"
+  participant: "org.hyperledger.composer.system.Participant"
+  operation: ALL
+  resource: "org.hyperledger.composer.system.**"
+  action: ALLOW
+}
