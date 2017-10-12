@@ -14,7 +14,7 @@
             "type": "node",
             "protocol": "inspector",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch Test",
             "program": "${workspaceRoot}/node_modules/.bin/_mocha",
             "args": [ "-t", "0" ],
             "cwd": "${workspaceRoot}",
