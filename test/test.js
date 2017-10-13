@@ -1,4 +1,3 @@
-
 'use strict';
 
 const AdminConnection = require('composer-admin').AdminConnection;
@@ -18,7 +17,6 @@ const bfs_fs = BrowserFS.BFSRequire('fs');
 const NS = 'org.riksbanken.ekrona';
 
 describe('e-krona', () => {
-
   let businessNetworkConnection;
   let factory
   let assetRegistry
@@ -29,7 +27,6 @@ describe('e-krona', () => {
   const aliceId = '1212121212'
   let bobIdentity
   const bobId = '1111111111'
-
 
   /**
    * Reconnect using a different identity.
@@ -120,19 +117,39 @@ describe('e-krona', () => {
   });
 
   describe('#transactions', () => {
-
     it('should pass', () => {
       assert(true)
     })
 
-    it('Alice can submit CreateEmptyAccount transaction', () => {
+    it('Alice can submit transaction "CreateEmptyAccount"', () => {
       const tx = factory.newTransaction(NS, 'CreateEmptyAccount')
       tx.accountId = '9132124512'
 
       return useIdentity(aliceIdentity)
         .then(() => businessNetworkConnection.submitTransaction(tx))
-        .then(() => assetRegistry.exists('9132124512')
-          .then(x => assert(x === true)))
+        .then(() => assetRegistry.exists('9132124512'))
+        .then(result => {
+          expect(result).to.eql(true)
+        })
+    })
+
+    it('Alice can submit transaction "AccountTransaction"', () => {
+      const tx = factory.newTransaction(NS, 'AccountTransaction')
+      
+      tx.from = factory.newRelationship(NS, 'Account', '1') // Alice's account
+      tx.to = factory.newRelationship(NS, 'Account', '2') // Bob's account
+      tx.amount = 50
+
+      console.log('tx', tx)
+
+      return useIdentity(aliceIdentity)
+        .then(() => businessNetworkConnection.submitTransaction(tx))
+        .then(() => {
+          conosle.log('ok!')
+        })
+        .catch(e => {
+          console.log('e!', e)
+        })
     })
   })
 });
