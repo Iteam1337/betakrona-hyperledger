@@ -5,9 +5,21 @@
   "name": "ekrona-network",
   "version": "0.1.10",
   "description": "This is a lab network for the e-krona project",
+  "watch": {
+    "test": {
+      "patterns": [
+        "config",
+        "lib",
+        "test"
+      ],
+      "extensions": "js",
+      "inherit": true
+    }
+  },
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/ekrona.bna",
-    "test": "mocha -t 0 --recursive"
+    "test": "mocha -t 0 --recursive",
+    "start": "npm-watch"
   },
   "keywords": [
     "e-krona"
@@ -31,6 +43,7 @@
     "mkdirp": "^0.5.1",
     "mocha": "^3.2.0",
     "moment": "^2.17.1",
+    "npm-watch": "^0.3.0",
     "nyc": "^11.0.2"
   },
   "license-check-config": {
