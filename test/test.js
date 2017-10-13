@@ -30,6 +30,8 @@ describe('e-krona', () => {
     const aliceId = '1212121212'
     let bobIdentity
     const bobId = '1111111111'
+    let svdIdentity
+    const svdId = '1010101010'
 
 
     /**
@@ -100,24 +102,33 @@ describe('e-krona', () => {
                 bob.firstName = 'Bob';
                 bob.lastName = 'B';
 
+                const svd = factory.newResource(NS, 'Person', svdId);
+                svd.firstName = 'Svenska';
+                svd.lastName = 'Dagbladet';
+
                 // Create seed assets.
                 const asset1 = factory.newResource(NS, 'Account', '1');
-                asset1.owner = factory.newRelationship(NS, 'Person', '1212121212');
+                asset1.owner = factory.newRelationship(NS, 'Person', aliceId);
                 asset1.value = 100;
                 const asset2 = factory.newResource(NS, 'Account', '2');
-                asset2.owner = factory.newRelationship(NS, 'Person', '1111111111');
+                asset2.owner = factory.newRelationship(NS, 'Person', bobId);
                 asset2.value = 200;
+                const asset3 = factory.newResource(NS, 'Account', '2');
+                asset3.owner = factory.newRelationship(NS, 'Person', svdId);
+                asset3.value = 200;
 
                 // Save seeds
                 return Promise.all([
-                    participantRegistry.addAll([alice, bob]),
-                    assetRegistry.addAll([asset1, asset2])
+                    participantRegistry.addAll([alice, bob, svd]),
+                    assetRegistry.addAll([asset1, asset2, asset3])
                 ])
             })
             .then(() => businessNetworkConnection.issueIdentity(`${NS}.Person#${aliceId}`, 'alice')
                 .then(identity => aliceIdentity = identity))
             .then(() => businessNetworkConnection.issueIdentity(`${NS}.Person#${bobId}`, 'bob')
                 .then(identity => bobIdentity = identity))
+            .then(() => businessNetworkConnection.issueIdentity(`${NS}.Person#${svdId}`, 'svd')
+                .then(identity => svdIdentity = identity))
     });
 
     describe('#transactions', () => {
@@ -126,7 +137,19 @@ describe('e-krona', () => {
             assert(true)
         })
 
-        it('Alice can submit CreateEmptyAccount transaction', () => {
+        it('Alice can buy from Svd', () => {
+            const tx = factory.newTransaction(NS, 'AccountTransaction')
+            tx.accountId = '9132124512'
+
+            /* transaction AccountTransaction {
+                --> Account from
+                --> Account to
+                o Double amount
+                o Receipt receipt optional
+              } */
+        })
+
+        /* it('Alice can submit CreateEmptyAccount transaction', () => {
             const tx = factory.newTransaction(NS, 'CreateEmptyAccount')
             tx.accountId = '9132124512'
 
@@ -134,6 +157,6 @@ describe('e-krona', () => {
                 .then(() => businessNetworkConnection.submitTransaction(tx))
                 .then(() => assetRegistry.exists('9132124512')
                     .then(x => assert(x === true)))
-        })
+        }) */
     })
 });

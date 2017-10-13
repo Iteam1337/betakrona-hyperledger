@@ -1,47 +1,6 @@
 /**
  * Sample access control list.
  */
-rule EverybodyCanReadEverything {
-    description: "Allow all participants read access to all resources"
-    participant: "org.riksbanken.ekrona.Person"
-    operation: READ
-    resource: "org.riksbanken.ekrona.*"
-    action: ALLOW
-}
-
-rule EverybodyCanCreateAccounts {
-    description: "Allow all participants create account resources"
-    participant: "org.riksbanken.ekrona.Person"
-    operation: CREATE
-    resource: "org.riksbanken.ekrona.Account"
-    action: ALLOW
-}
-
-rule EverybodyCanSubmitTransactions {
-    description: "Allow all participants to submit transactions from their own accounts"
-    participant(p): "org.riksbanken.ekrona.Person"
-    operation: CREATE
-    resource(r): "org.riksbanken.ekrona.AccountTransaction"
-    condition: (r.from.owner.getIdentifier() === p.getIdentifier())
-    action: ALLOW
-}
-
-rule EverybodyCanSubmitCreateEmptyAccountTransactions {
-    description: "Allow all participants to submit transactions from their own accounts"
-    participant: "org.riksbanken.ekrona.Person"
-    operation: CREATE
-    resource: "org.riksbanken.ekrona.CreateEmptyAccount"
-    action: ALLOW
-}
-
-rule EverybodyCanSubmitEmptyAccountTransactions {
-    description: "Allow all participants to submit transactions from their own accounts"
-    participant(p): "org.riksbanken.ekrona.Person"
-    operation: CREATE
-    resource(r): "org.riksbanken.ekrona.EmptyAccountTransaction"
-    condition: (r.account.owner.getIdentifier() === p.getIdentifier())
-    action: ALLOW
-}
 
 rule OwnerHasFullAccessToTheirAssets {
     description: "Allow all participants full access to their assets"
@@ -49,6 +8,15 @@ rule OwnerHasFullAccessToTheirAssets {
     operation: ALL
     resource(r): "org.riksbanken.ekrona.Account"
     condition: (r.owner.getIdentifier() === p.getIdentifier())
+    action: ALLOW
+}
+
+rule EverybodyCanSubmitAccountTransactions {
+    description: "Allow all participants to submit transactions from their own accounts"
+    participant(p): "org.riksbanken.ekrona.Person"
+    operation: CREATE
+    resource(r): "org.riksbanken.ekrona.AccountTransaction"
+    condition: (r.from.owner.getIdentifier() === p.getIdentifier())
     action: ALLOW
 }
 

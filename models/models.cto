@@ -16,14 +16,12 @@ transaction AccountTransaction {
   --> Account from
   --> Account to
   o Double amount
+  o Receipt receipt optional
 }
 
-transaction CreateEmptyAccount {
-  o String accountId
-}
-
-transaction EmptyAccountTransaction {
-  --> Account account
+concept Receipt {
+  o String payload
+  o Double vat 
 }
 
 event AccountValueChangeEvent {
