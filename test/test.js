@@ -1,4 +1,3 @@
-
 'use strict';
 
 const AdminConnection = require('composer-admin').AdminConnection;
@@ -18,8 +17,6 @@ const bfs_fs = BrowserFS.BFSRequire('fs');
 const NS = 'org.riksbanken.ekrona';
 
 describe('e-krona', () => {
-
-
   let businessNetworkConnection;
   let factory
   let assetRegistry
@@ -32,7 +29,6 @@ describe('e-krona', () => {
   const bobId = '1111111111'
   let svdIdentity
   const svdId = '1010101010'
-
 
   /**
    * Reconnect using a different identity.
@@ -113,7 +109,7 @@ describe('e-krona', () => {
         const asset2 = factory.newResource(NS, 'Account', '2');
         asset2.owner = factory.newRelationship(NS, 'Person', bobId);
         asset2.value = 200;
-        const asset3 = factory.newResource(NS, 'Account', '2');
+        const asset3 = factory.newResource(NS, 'Account', '3');
         asset3.owner = factory.newRelationship(NS, 'Person', svdId);
         asset3.value = 200;
 
@@ -132,31 +128,24 @@ describe('e-krona', () => {
   });
 
   describe('#transactions', () => {
-
-    it('should pass', () => {
-      assert(true)
-    })
-
     it('Alice can buy from Svd', () => {
       const tx = factory.newTransaction(NS, 'AccountTransaction')
-      tx.accountId = '9132124512'
-
-      /* transaction AccountTransaction {
-          --> Account from
-          --> Account to
-          o Double amount
-          o Receipt receipt optional
-        } */
+      tx.from = factory.newRelationship(NS, 'Account', '1') // Alice's account
+      tx.to = factory.newRelationship(NS, 'Account', '3') // SvD's account
+      tx.amount = 4
+      
+      return useIdentity(aliceIdentity)
+        .then(() => {
+          businessNetworkConnection.submitTransaction(tx)
+        })
+        .then(() => {
+          // Get SvD's account.
+          return assetRegistry.get('3')
+        })
+        .then(a => {
+          // Verify that SvD now has initial amount (200) + the 4 from Alice.
+          expect(a.value).to.eql(200 + 4)
+        })
     })
-
-    /* it('Alice can submit CreateEmptyAccount transaction', () => {
-        const tx = factory.newTransaction(NS, 'CreateEmptyAccount')
-        tx.accountId = '9132124512'
-
-        return useIdentity(aliceIdentity)
-            .then(() => businessNetworkConnection.submitTransaction(tx))
-            .then(() => assetRegistry.exists('9132124512')
-                .then(x => assert(x === true)))
-    }) */
   })
 });
