@@ -7,7 +7,12 @@ const BusinessNetworkConnection = require('composer-client').BusinessNetworkConn
 const BusinessNetworkDefinition = require('composer-common').BusinessNetworkDefinition;
 const path = require('path');
 
-require('chai').should();
+// Configuring chai testing
+const chai = require('chai')
+const chaiAsPromised = require('chai-as-promised')
+chai.use(chaiAsPromised)
+const assert = chai.assert
+const expect = chai.expect
 
 const bfs_fs = BrowserFS.BFSRequire('fs');
 const NS = 'org.riksbanken.ekrona';
@@ -17,10 +22,12 @@ describe('e-krona', () => {
 
     let businessNetworkConnection;
     let factory
+    let assetRegistry
+    let participantRegistry
     let events
 
     let aliceIdentity
-    const aliceId ='1212121212'
+    const aliceId = '1212121212'
     let bobIdentity
     const bobId = '1111111111'
 
@@ -76,129 +83,57 @@ describe('e-krona', () => {
                 return businessNetworkConnection.connect('defaultProfile', 'ekrona-network', 'admin', 'adminpw');
             })
             .then(() => {
-
                 // Get the factory for the business network.
                 factory = businessNetworkConnection.getBusinessNetwork().getFactory();
+            })
+            .then(() => businessNetworkConnection.getParticipantRegistry(`${NS}.Person`)
+                .then(registry => participantRegistry = registry))
+            .then(() => businessNetworkConnection.getAssetRegistry(`${NS}.Account`)
+                .then(registry => assetRegistry = registry))
+            .then(() => {
 
-                // Create the participants.
+                // Create seed participants.
                 const alice = factory.newResource(NS, 'Person', aliceId);
                 alice.firstName = 'Alice';
                 alice.lastName = 'A';
                 const bob = factory.newResource(NS, 'Person', bobId);
                 bob.firstName = 'Bob';
                 bob.lastName = 'B';
-                return businessNetworkConnection.getParticipantRegistry(`${NS}.Person`)
-                    .then((participantRegistry) => {
-                        participantRegistry.addAll([alice, bob]);
-                    });
 
-            })
-            .then(() => {
-
-                // Create the assets.
+                // Create seed assets.
                 const asset1 = factory.newResource(NS, 'Account', '1');
                 asset1.owner = factory.newRelationship(NS, 'Person', '1212121212');
                 asset1.value = 100;
                 const asset2 = factory.newResource(NS, 'Account', '2');
                 asset2.owner = factory.newRelationship(NS, 'Person', '1111111111');
                 asset2.value = 200;
-                return businessNetworkConnection.getAssetRegistry(`${NS}.Account`)
-                    .then((assetRegistry) => {
-                        assetRegistry.addAll([asset1, asset2]);
-                    });
+
+                // Save seeds
+                return Promise.all([
+                    participantRegistry.addAll([alice, bob]),
+                    assetRegistry.addAll([asset1, asset2])
+                ])
             })
-            .then(() => {
-
-                // Issue the identities.
-                return businessNetworkConnection.issueIdentity(`${NS}.Person#${aliceId}`, 'alice')
-                    .then((identity) => {
-                        aliceIdentity = identity;
-                        return businessNetworkConnection.issueIdentity(`${NS}.Person#${bobId}`, 'bob');
-                    })
-                    .then((identity) => {
-                        bobIdentity = identity;
-                    });
-
-            });;
+            .then(() => businessNetworkConnection.issueIdentity(`${NS}.Person#${aliceId}`, 'alice')
+                .then(identity => aliceIdentity = identity))
+            .then(() => businessNetworkConnection.issueIdentity(`${NS}.Person#${bobId}`, 'bob')
+                .then(identity => bobIdentity = identity))
     });
 
     describe('#transactions', () => {
 
         it('should pass', () => {
-            true.should.equal(true)
+            assert(true)
         })
 
-        it('Alice can create a new account', () => {
-            const factory = businessNetworkConnection.getBusinessNetwork().getFactory()
-
-            const alice = factory.newResource(NS, 'Person', '121212')
-            alice.firstName = "Alice"
-            alice.lastName = ""
-
+        it('Alice can submit CreateEmptyAccount transaction', () => {
             const tx = factory.newTransaction(NS, 'CreateEmptyAccount')
+            tx.accountId = '9132124512'
 
-
-            return businessNetworkConnection.submitTransaction(tx).then(x => {
-                console.log('x', x)
-                //true.should.equal(false)
-            }).catch(y => console.log('y', y))
-
+            return useIdentity(aliceIdentity)
+                .then(() => businessNetworkConnection.submitTransaction(tx))
+                .then(() => assetRegistry.exists('9132124512')
+                    .then(x => assert(x === true)))
         })
-
-        /* it('should be able to trade a commodity', () => {
-            const factory = businessNetworkConnection.getBusinessNetwork().getFactory();
-
-            // create the traders
-            const dan = factory.newResource(NS, 'Trader', 'dan@email.com');
-            dan.firstName = 'Dan';
-            dan.lastName = 'Selman';
-
-            const simon = factory.newResource(NS, 'Trader', 'simon@email.com');
-            simon.firstName = 'Simon';
-            simon.lastName = 'Stone';
-
-            // create the commodity
-            const commodity = factory.newResource(NS, 'Commodity', 'EMA');
-            commodity.description = 'Corn';
-            commodity.mainExchange = 'Euronext';
-            commodity.quantity = 100;
-            commodity.owner = factory.newRelationship(NS, 'Trader', dan.$identifier);
-
-            // create the trade transaction
-            const trade = factory.newTransaction(NS, 'Trade');
-            trade.newOwner = factory.newRelationship(NS, 'Trader', simon.$identifier);
-            trade.commodity = factory.newRelationship(NS, 'Commodity', commodity.$identifier);
-
-            // the owner should of the commodity should be dan
-            commodity.owner.$identifier.should.equal(dan.$identifier);
-
-            // Get the asset registry.
-            let commodityRegistry;
-            return businessNetworkConnection.getAssetRegistry(NS + '.Commodity')
-                .then((assetRegistry) => {
-                    commodityRegistry = assetRegistry;
-                    // add the commodity to the asset registry.
-                    return commodityRegistry.add(commodity);
-                })
-                .then(() => {
-                    return businessNetworkConnection.getParticipantRegistry(NS + '.Trader');
-                })
-                .then((participantRegistry) => {
-                    // add the traders
-                    return participantRegistry.addAll([dan, simon]);
-                })
-                .then(() => {
-                    // submit the transaction
-                    return businessNetworkConnection.submitTransaction(trade);
-                })
-                .then(() => {
-                    // re-get the commodity
-                    return commodityRegistry.get(commodity.$identifier);
-                })
-                .then((newCommodity) => {
-                    // the owner of the commodity should now be simon
-                    newCommodity.owner.$identifier.should.equal(simon.$identifier);
-                });
-        }); */
-    });
+    })
 });

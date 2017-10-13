@@ -19,6 +19,7 @@ transaction AccountTransaction {
 }
 
 transaction CreateEmptyAccount {
+  o String accountId
 }
 
 transaction EmptyAccountTransaction {
