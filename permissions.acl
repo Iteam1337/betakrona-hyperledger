@@ -1,6 +1,10 @@
-/**
- * Sample access control list.
- */
+rule EveryoneCanSeeAccounts {
+    description: "Allow all participants to see all accounts"
+    participant: "org.riksbanken.ekrona.Person"
+    operation: READ, UPDATE
+    resource: "org.riksbanken.ekrona.Account"
+    action: ALLOW
+}
 
 rule OwnerHasFullAccessToTheirAssets {
     description: "Allow all participants full access to their assets"
@@ -16,7 +20,7 @@ rule EverybodyCanSubmitAccountTransactions {
     participant(p): "org.riksbanken.ekrona.Person"
     operation: CREATE
     resource(r): "org.riksbanken.ekrona.AccountTransaction"
-    condition: (r.from.owner.getIdentifier() === p.getIdentifier() && r.amount > 0)
+    condition: (r.from.owner.getIdentifier() === p.getIdentifier() && r.amount > 0 && r.from.accountId !== r.to.accountId)
     action: ALLOW
 }
 

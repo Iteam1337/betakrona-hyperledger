@@ -133,7 +133,7 @@ describe('e-krona', () => {
       tx.from = factory.newRelationship(NS, 'Account', '1') // Alice's account
       tx.to = factory.newRelationship(NS, 'Account', '3') // SvD's account
       tx.amount = 4
-      
+
       return useIdentity(aliceIdentity)
         .then(() => {
           return businessNetworkConnection.submitTransaction(tx)
@@ -196,6 +196,21 @@ describe('e-krona', () => {
 
         return useIdentity(aliceIdentity)
           .then(() => {
+            return businessNetworkConnection.submitTransaction(tx)
+          })
+          .catch(e => {
+            expect(e.message.indexOf("does not have 'CREATE' access to resource")).to.be.greaterThan(-1)
+          })
+      })
+
+      it('It is not possible to submit a transaction to and from the same account', () => {
+        return useIdentity(aliceIdentity)
+          .then(() => {
+            let tx = factory.newTransaction(NS, 'AccountTransaction')
+            tx.to = factory.newRelationship(NS, 'Account', '1')
+            tx.from = factory.newRelationship(NS, 'Account', '1')
+            tx.amount = 1337
+
             return businessNetworkConnection.submitTransaction(tx)
           })
           .catch(e => {
