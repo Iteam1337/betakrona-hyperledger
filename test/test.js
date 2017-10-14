@@ -136,7 +136,7 @@ describe('e-krona', () => {
       
       return useIdentity(aliceIdentity)
         .then(() => {
-          businessNetworkConnection.submitTransaction(tx)
+          return businessNetworkConnection.submitTransaction(tx)
         })
         .then(() => {
           // Get SvD's account.
@@ -146,6 +146,62 @@ describe('e-krona', () => {
           // Verify that SvD now has initial amount (200) + the 4 from Alice.
           expect(a.value).to.eql(200 + 4)
         })
+    })
+
+    describe('AccountTransaction constraints', () => {
+      it('It is not possible to submit a transaction without "from"', () => {
+        return useIdentity(aliceIdentity)
+          .then(() => {
+            let tx = factory.newTransaction(NS, 'AccountTransaction')
+            tx.amount = 0
+            tx.to = factory.newRelationship(NS, 'Account', '2')
+            return businessNetworkConnection.submitTransaction(tx)
+          })
+          .catch(e => {
+            expect(e.message.indexOf('missing required field from')).to.be.greaterThan(-1)
+          })
+      })
+  
+      it('It is not possible to submit a transaction without "to"', () => {
+        return useIdentity(aliceIdentity)
+          .then(() => {
+            let tx = factory.newTransaction(NS, 'AccountTransaction')
+            tx.amount = 0
+            tx.from = factory.newRelationship(NS, 'Account', '1')
+            return businessNetworkConnection.submitTransaction(tx)
+          })
+          .catch(e => {
+            expect(e.message.indexOf('missing required field to')).to.be.greaterThan(-1)
+          })
+      })
+
+      it('It is not possible to submit a transaction without "amount"', () => {
+        return useIdentity(aliceIdentity)
+          .then(() => {
+            let tx = factory.newTransaction(NS, 'AccountTransaction')
+            tx.to = factory.newRelationship(NS, 'Account', '2')
+            tx.from = factory.newRelationship(NS, 'Account', '1')
+            return businessNetworkConnection.submitTransaction(tx)
+          })
+          .catch(e => {
+            expect(e.message.indexOf('missing required field amount')).to.be.greaterThan(-1)
+          })
+      })
+
+      it('It is not possible to submit a transaction having amount 0', () => {
+        const tx = factory.newTransaction(NS, 'AccountTransaction')
+        tx.from = factory.newRelationship(NS, 'Account', '1') // Alice's account
+        tx.to = factory.newRelationship(NS, 'Account', '2') // SvD's account
+        tx.amount = 0
+
+        return useIdentity(aliceIdentity)
+          .then(() => {
+            return businessNetworkConnection.submitTransaction(tx)
+          })
+          .catch(e => {
+            expect(e.message.indexOf("does not have 'CREATE' access to resource")).to.be.greaterThan(-1)
+          })
+      })
     })
   })
 });
