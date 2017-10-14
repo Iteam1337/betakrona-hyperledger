@@ -16,7 +16,7 @@ rule EverybodyCanSubmitAccountTransactions {
     participant(p): "org.riksbanken.ekrona.Person"
     operation: CREATE
     resource(r): "org.riksbanken.ekrona.AccountTransaction"
-    condition: (r.from.owner.getIdentifier() === p.getIdentifier())
+    condition: (r.from.owner.getIdentifier() === p.getIdentifier() && r.amount > 0)
     action: ALLOW
 }
 
