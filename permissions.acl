@@ -1,15 +1,16 @@
-rule EveryoneCanSeeAccounts {
+rule UserCanReadOwnAccounts {
     description: "Allow all participants to see all accounts"
-    participant: "org.riksbanken.ekrona.Person"
+    participant (p): "org.riksbanken.ekrona.Person"
     operation: READ
-    resource: "org.riksbanken.ekrona.Account"
+    resource (r): "org.riksbanken.ekrona.Account"
+    condition: (r.owner.getIdentifier() === p.getIdentifier())
     action: ALLOW
 }
 
 rule UserCanUpdateAccountsIfDuringTransactions {
   description: "Allow participant to update their own account and the receiving account if part of a valid AccountTransaction."
   participant: "org.riksbanken.ekrona.Person"
-  operation: UPDATE
+  operation: UPDATE, READ
   resource: "org.riksbanken.ekrona.Account"
   transaction: "org.riksbanken.ekrona.AccountTransaction"
   action: ALLOW

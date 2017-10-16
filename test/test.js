@@ -146,6 +146,14 @@ describe('e-krona', () => {
           // Verify that SvD now has initial amount (200) + the 4 from Alice.
           expect(a.value).to.eql(200 + 4)
         })
+        .then(() => {
+          // Get Alice's account.
+          return assetRegistry.get('1')
+        })
+        .then(a => {
+          // Verify that SvD now has initial amount (200) + the 4 from Alice.
+          expect(a.value).to.eql(100 - 4)
+        })
     })
 
     describe('AccountTransaction constraints', () => {
